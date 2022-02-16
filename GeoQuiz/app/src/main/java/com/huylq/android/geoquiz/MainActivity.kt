@@ -8,6 +8,7 @@ import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModelProvider
 
 private const val TAG = "MainActivity"
@@ -82,8 +83,15 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (requestCode == REQUEST_CODE_CHEAT) {
-            quizViewModel.isCheater = data?.getBooleanExtra(EXTRA_ANSWER_SHOWN, false) ?: false
-            Log.d(TAG, "is Cheater? ${quizViewModel.isCheater}")
+            if (!quizViewModel.isQuestionCheated) {
+                quizViewModel.isQuestionCheated = data?.getBooleanExtra(EXTRA_ANSWER_SHOWN, false) ?: false
+            }
+
+            if (!quizViewModel.isCurrentQuestionAnswered && quizViewModel.isQuestionCheated) {
+                showRespond(R.string.judgement_toast)
+            }
+
+            Log.d(TAG, "is Cheater? ${quizViewModel.isQuestionCheated}")
         }
     }
 
@@ -99,6 +107,7 @@ class MainActivity : AppCompatActivity() {
         trueButton.isEnabled = false
         falseButton.isEnabled = false
         quizViewModel.isCurrentQuestionAnswered = true
+        quizViewModel.answeredCount++
     }
 
     private fun updateQuestion() {
@@ -109,19 +118,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkAnswer(userAnswer: Boolean) {
-        markQuestionAsAnswered()
-        quizViewModel.answeredCount++
         val correctAnswer = quizViewModel.currentQuestionAnswer
 
-        val messageResId = when {
-            quizViewModel.isCheater -> R.string.judgement_toast
-            userAnswer == correctAnswer -> {
-                quizViewModel.correctAnswerCount++
-                R.string.correct_toast
-            }
-            else -> R.string.incorrect_toast
+        val messageResId = if (userAnswer == correctAnswer) {
+            quizViewModel.correctAnswerCount++
+            R.string.correct_toast
+        } else {
+            R.string.incorrect_toast
         }
+        showRespond(messageResId)
+    }
 
+    private fun showRespond(@StringRes messageResId: Int) {
+        markQuestionAsAnswered()
         Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show()
 
         if (quizViewModel.answeredCount == quizViewModel.questionCount) {

@@ -5,15 +5,20 @@ import androidx.lifecycle.ViewModel
 class QuizViewModel : ViewModel() {
 
     private val questionBank = listOf(
-        Question(R.string.question_australia, answer = true, isAnswered = false),
-        Question(R.string.question_oceans, answer = true, isAnswered = false),
-        Question(R.string.question_mideast, answer = false, isAnswered = false),
-        Question(R.string.question_africa, answer = false, isAnswered = false),
-        Question(R.string.question_americas, answer = true, isAnswered = false),
-        Question(R.string.question_asia, answer = true, isAnswered = false)
+        Question(R.string.question_australia, answer = true, isAnswered = false, isCheated = false),
+        Question(R.string.question_oceans, answer = true, isAnswered = false, isCheated = false),
+        Question(R.string.question_mideast, answer = false, isAnswered = false, isCheated = false),
+        Question(R.string.question_africa, answer = false, isAnswered = false, isCheated = false),
+        Question(R.string.question_americas, answer = true, isAnswered = false, isCheated = false),
+        Question(R.string.question_asia, answer = true, isAnswered = false, isCheated = false)
     )
 
-    var isCheater = false
+    var isQuestionCheated: Boolean
+        get() = questionBank[currentIndex].isCheated
+        set(value) {
+            questionBank[currentIndex].isCheated = value
+        }
+
     var currentIndex = 0
     var answeredCount = 0
 
