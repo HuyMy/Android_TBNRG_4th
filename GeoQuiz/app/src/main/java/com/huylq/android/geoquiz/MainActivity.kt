@@ -1,6 +1,6 @@
 package com.huylq.android.geoquiz
 
-import android.content.Intent
+import android.app.Activity
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -8,6 +8,7 @@ import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModelProvider
 
@@ -15,7 +16,6 @@ private const val TAG = "MainActivity"
 private const val KEY_INDEX = "index"
 private const val KEY_CORRECT_COUNT = "correct_count"
 private const val KEY_ANSWERED_COUNT = "answered_count"
-private const val REQUEST_CODE_CHEAT = 0
 
 class MainActivity : AppCompatActivity() {
 
@@ -28,6 +28,19 @@ class MainActivity : AppCompatActivity() {
 
     private val quizViewModel: QuizViewModel by lazy {
         ViewModelProvider(this)[QuizViewModel::class.java]
+    }
+
+    private val startForResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            if (!quizViewModel.isQuestionCheated) {
+                val data = it.data
+                quizViewModel.isQuestionCheated = data?.getBooleanExtra(EXTRA_ANSWER_SHOWN, false) ?: false
+            }
+
+            if (!quizViewModel.isCurrentQuestionAnswered && quizViewModel.isQuestionCheated) {
+                showRespond(R.string.judgement_toast)
+            }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,7 +72,7 @@ class MainActivity : AppCompatActivity() {
         cheatButton.setOnClickListener {
             val answerIsTrue = quizViewModel.currentQuestionAnswer
             val intent = CheatActivity.newIntent(this@MainActivity, answerIsTrue)
-            startActivityForResult(intent, REQUEST_CODE_CHEAT)
+            startForResult.launch(intent)
         }
 
         nextButton.setOnClickListener {
@@ -73,26 +86,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         updateQuestion()
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if (resultCode != RESULT_OK) {
-            return
-        }
-
-        if (requestCode == REQUEST_CODE_CHEAT) {
-            if (!quizViewModel.isQuestionCheated) {
-                quizViewModel.isQuestionCheated = data?.getBooleanExtra(EXTRA_ANSWER_SHOWN, false) ?: false
-            }
-
-            if (!quizViewModel.isCurrentQuestionAnswered && quizViewModel.isQuestionCheated) {
-                showRespond(R.string.judgement_toast)
-            }
-
-            Log.d(TAG, "is Cheater? ${quizViewModel.isQuestionCheated}")
-        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
