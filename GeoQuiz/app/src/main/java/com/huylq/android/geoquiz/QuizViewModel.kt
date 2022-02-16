@@ -1,9 +1,6 @@
 package com.huylq.android.geoquiz
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
-
-private const val TAG = "QuizViewModel"
 
 class QuizViewModel : ViewModel() {
 
@@ -17,6 +14,12 @@ class QuizViewModel : ViewModel() {
     )
 
     var currentIndex = 0
+    var answeredCount = 0
+
+    val questionCount: Int
+        get() = questionBank.size
+
+    var correctAnswerCount = 0
 
     val currentQuestionAnswer: Boolean
         get() = questionBank[currentIndex].answer

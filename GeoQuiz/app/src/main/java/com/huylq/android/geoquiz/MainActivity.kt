@@ -11,6 +11,8 @@ import androidx.lifecycle.ViewModelProvider
 
 private const val TAG = "MainActivity"
 private const val KEY_INDEX = "index"
+private const val KEY_CORRECT_COUNT = "correct_count"
+private const val KEY_ANSWERED_COUNT = "answered_count"
 
 class MainActivity : AppCompatActivity() {
 
@@ -30,6 +32,10 @@ class MainActivity : AppCompatActivity() {
 
         val currentIndex = savedInstanceState?.getInt(KEY_INDEX, 0) ?: 0
         quizViewModel.currentIndex = currentIndex
+        val correctAnswerCount = savedInstanceState?.getInt(KEY_CORRECT_COUNT, 0) ?: 0
+        quizViewModel.correctAnswerCount = correctAnswerCount
+        val answeredCount = savedInstanceState?.getInt(KEY_ANSWERED_COUNT, 0) ?: 0
+        quizViewModel.answeredCount = answeredCount
 
         trueButton = findViewById(R.id.true_button)
         falseButton = findViewById(R.id.false_button)
@@ -39,12 +45,10 @@ class MainActivity : AppCompatActivity() {
 
         trueButton.setOnClickListener {
             checkAnswer(true)
-            markQuestionAsAnswered()
         }
 
         falseButton.setOnClickListener {
             checkAnswer(false)
-            markQuestionAsAnswered()
         }
 
         nextButton.setOnClickListener {
@@ -64,6 +68,8 @@ class MainActivity : AppCompatActivity() {
         super.onSaveInstanceState(outState)
         Log.d(TAG, "onSaveInstanceState")
         outState.putInt(KEY_INDEX, quizViewModel.currentIndex)
+        outState.putInt(KEY_CORRECT_COUNT, quizViewModel.correctAnswerCount)
+        outState.putInt(KEY_ANSWERED_COUNT, quizViewModel.answeredCount)
     }
 
     private fun markQuestionAsAnswered() {
@@ -80,14 +86,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkAnswer(userAnswer: Boolean) {
+        markQuestionAsAnswered()
+        quizViewModel.answeredCount++
         val correctAnswer = quizViewModel.currentQuestionAnswer
 
         val messageResId = if (userAnswer == correctAnswer) {
+            quizViewModel.correctAnswerCount++
             R.string.correct_toast
         } else {
             R.string.incorrect_toast
         }
 
         Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show()
+
+        if (quizViewModel.answeredCount == quizViewModel.questionCount) {
+            val score = (quizViewModel.correctAnswerCount * 100 / quizViewModel.questionCount)
+            Toast.makeText(this, "Finish! You were correct $score% of all questions", Toast.LENGTH_LONG).show()
+        }
     }
 }
