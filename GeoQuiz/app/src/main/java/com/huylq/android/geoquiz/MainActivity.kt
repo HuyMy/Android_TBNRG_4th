@@ -1,5 +1,6 @@
 package com.huylq.android.geoquiz
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -13,6 +14,7 @@ private const val TAG = "MainActivity"
 private const val KEY_INDEX = "index"
 private const val KEY_CORRECT_COUNT = "correct_count"
 private const val KEY_ANSWERED_COUNT = "answered_count"
+private const val REQUEST_CODE_CHEAT = 0
 
 class MainActivity : AppCompatActivity() {
 
@@ -56,7 +58,7 @@ class MainActivity : AppCompatActivity() {
         cheatButton.setOnClickListener {
             val answerIsTrue = quizViewModel.currentQuestionAnswer
             val intent = CheatActivity.newIntent(this@MainActivity, answerIsTrue)
-            startActivity(intent)
+            startActivityForResult(intent, REQUEST_CODE_CHEAT)
         }
 
         nextButton.setOnClickListener {
@@ -70,6 +72,19 @@ class MainActivity : AppCompatActivity() {
         }
 
         updateQuestion()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (resultCode != RESULT_OK) {
+            return
+        }
+
+        if (requestCode == REQUEST_CODE_CHEAT) {
+            quizViewModel.isCheater = data?.getBooleanExtra(EXTRA_ANSWER_SHOWN, false) ?: false
+            Log.d(TAG, "is Cheater? ${quizViewModel.isCheater}")
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -98,11 +113,13 @@ class MainActivity : AppCompatActivity() {
         quizViewModel.answeredCount++
         val correctAnswer = quizViewModel.currentQuestionAnswer
 
-        val messageResId = if (userAnswer == correctAnswer) {
-            quizViewModel.correctAnswerCount++
-            R.string.correct_toast
-        } else {
-            R.string.incorrect_toast
+        val messageResId = when {
+            quizViewModel.isCheater -> R.string.judgement_toast
+            userAnswer == correctAnswer -> {
+                quizViewModel.correctAnswerCount++
+                R.string.correct_toast
+            }
+            else -> R.string.incorrect_toast
         }
 
         Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show()
