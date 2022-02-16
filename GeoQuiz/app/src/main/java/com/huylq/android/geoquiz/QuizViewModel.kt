@@ -8,12 +8,12 @@ private const val TAG = "QuizViewModel"
 class QuizViewModel : ViewModel() {
 
     private val questionBank = listOf(
-        Question(R.string.question_australia, true),
-        Question(R.string.question_oceans, true),
-        Question(R.string.question_mideast, false),
-        Question(R.string.question_africa, false),
-        Question(R.string.question_americas, true),
-        Question(R.string.question_asia, true)
+        Question(R.string.question_australia, answer = true, isAnswered = false),
+        Question(R.string.question_oceans, answer = true, isAnswered = false),
+        Question(R.string.question_mideast, answer = false, isAnswered = false),
+        Question(R.string.question_africa, answer = false, isAnswered = false),
+        Question(R.string.question_americas, answer = true, isAnswered = false),
+        Question(R.string.question_asia, answer = true, isAnswered = false)
     )
 
     var currentIndex = 0
@@ -23,6 +23,12 @@ class QuizViewModel : ViewModel() {
 
     val currentQuestionText: Int
         get() = questionBank[currentIndex].textResId
+
+    var isCurrentQuestionAnswered: Boolean
+        get() = questionBank[currentIndex].isAnswered
+        set(value) {
+            questionBank[currentIndex].isAnswered = value
+        }
 
     fun moveToNext() {
         currentIndex = (currentIndex + 1) % questionBank.size

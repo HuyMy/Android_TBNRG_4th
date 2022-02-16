@@ -2,7 +2,6 @@ package com.huylq.android.geoquiz
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.util.Log
 import android.widget.Button
 import android.widget.ImageButton
@@ -22,7 +21,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var questionTextView: TextView
 
     private val quizViewModel: QuizViewModel by lazy {
-        ViewModelProvider(this).get(QuizViewModel::class.java)
+        ViewModelProvider(this)[QuizViewModel::class.java]
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,10 +39,12 @@ class MainActivity : AppCompatActivity() {
 
         trueButton.setOnClickListener {
             checkAnswer(true)
+            markQuestionAsAnswered()
         }
 
         falseButton.setOnClickListener {
             checkAnswer(false)
+            markQuestionAsAnswered()
         }
 
         nextButton.setOnClickListener {
@@ -59,14 +60,23 @@ class MainActivity : AppCompatActivity() {
         updateQuestion()
     }
 
-    override fun onSaveInstanceState(outState: Bundle, outPersistentState: PersistableBundle) {
-        super.onSaveInstanceState(outState, outPersistentState)
-        Log.i(TAG, "onSaveInstanceState")
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        Log.d(TAG, "onSaveInstanceState")
         outState.putInt(KEY_INDEX, quizViewModel.currentIndex)
+    }
+
+    private fun markQuestionAsAnswered() {
+        trueButton.isEnabled = false
+        falseButton.isEnabled = false
+        quizViewModel.isCurrentQuestionAnswered = true
     }
 
     private fun updateQuestion() {
         questionTextView.setText(quizViewModel.currentQuestionText)
+        val isQuestionAnswered = quizViewModel.isCurrentQuestionAnswered
+        trueButton.isEnabled = !isQuestionAnswered
+        falseButton.isEnabled = !isQuestionAnswered
     }
 
     private fun checkAnswer(userAnswer: Boolean) {
