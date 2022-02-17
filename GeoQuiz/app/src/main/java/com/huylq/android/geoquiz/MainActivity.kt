@@ -4,10 +4,7 @@ import android.app.Activity
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.widget.Button
-import android.widget.ImageButton
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModelProvider
@@ -16,6 +13,8 @@ private const val TAG = "MainActivity"
 private const val KEY_INDEX = "index"
 private const val KEY_CORRECT_COUNT = "correct_count"
 private const val KEY_ANSWERED_COUNT = "answered_count"
+private const val KEY_CHEAT_REMAINING = "cheat_remaining"
+const val MAX_CHEAT_ALLOWANCE = 3
 
 class MainActivity : AppCompatActivity() {
 
@@ -25,6 +24,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var prevButton: ImageButton
     private lateinit var cheatButton: Button
     private lateinit var questionTextView: TextView
+    private lateinit var cheatRemainingTextView: TextView
 
     private val quizViewModel: QuizViewModel by lazy {
         ViewModelProvider(this)[QuizViewModel::class.java]
@@ -34,10 +34,13 @@ class MainActivity : AppCompatActivity() {
         if (it.resultCode == Activity.RESULT_OK) {
             if (!quizViewModel.isQuestionCheated) {
                 val data = it.data
-                quizViewModel.isQuestionCheated = data?.getBooleanExtra(EXTRA_ANSWER_SHOWN, false) ?: false
+                quizViewModel.isQuestionCheated = data?.getBooleanExtra(EXTRA_ANSWER_SHOWN, false)
+                        ?: false
             }
 
-            if (!quizViewModel.isCurrentQuestionAnswered && quizViewModel.isQuestionCheated) {
+            if (quizViewModel.isQuestionCheated) {
+                quizViewModel.cheatAllowanceRemain--
+                bindCheatLayout()
                 showRespond(R.string.judgement_toast)
             }
         }
@@ -53,6 +56,9 @@ class MainActivity : AppCompatActivity() {
         quizViewModel.correctAnswerCount = correctAnswerCount
         val answeredCount = savedInstanceState?.getInt(KEY_ANSWERED_COUNT, 0) ?: 0
         quizViewModel.answeredCount = answeredCount
+        val cheatRemaining = savedInstanceState?.getInt(KEY_CHEAT_REMAINING, MAX_CHEAT_ALLOWANCE)
+                ?: MAX_CHEAT_ALLOWANCE
+        quizViewModel.cheatAllowanceRemain = cheatRemaining
 
         trueButton = findViewById(R.id.true_button)
         falseButton = findViewById(R.id.false_button)
@@ -60,6 +66,7 @@ class MainActivity : AppCompatActivity() {
         nextButton = findViewById(R.id.next_button)
         prevButton = findViewById(R.id.prev_button)
         questionTextView = findViewById(R.id.question_text_view)
+        cheatRemainingTextView = findViewById(R.id.cheat_remaining_text_view)
 
         trueButton.setOnClickListener {
             checkAnswer(true)
@@ -85,6 +92,7 @@ class MainActivity : AppCompatActivity() {
             updateQuestion()
         }
 
+        bindCheatLayout()
         updateQuestion()
     }
 
@@ -94,6 +102,7 @@ class MainActivity : AppCompatActivity() {
         outState.putInt(KEY_INDEX, quizViewModel.currentIndex)
         outState.putInt(KEY_CORRECT_COUNT, quizViewModel.correctAnswerCount)
         outState.putInt(KEY_ANSWERED_COUNT, quizViewModel.answeredCount)
+        outState.putInt(KEY_CHEAT_REMAINING, quizViewModel.cheatAllowanceRemain)
     }
 
     private fun markQuestionAsAnswered() {
@@ -130,5 +139,14 @@ class MainActivity : AppCompatActivity() {
             val score = (quizViewModel.correctAnswerCount * 100 / quizViewModel.questionCount)
             Toast.makeText(this, "Finish! You were correct $score% of all questions", Toast.LENGTH_LONG).show()
         }
+    }
+
+    private fun bindCheatLayout() {
+        cheatRemainingTextView.text = resources.getQuantityString(
+                R.plurals.cheat_remaining,
+                quizViewModel.cheatAllowanceRemain,
+                quizViewModel.cheatAllowanceRemain
+        )
+        cheatButton.isEnabled = quizViewModel.cheatAllowanceRemain != 0
     }
 }

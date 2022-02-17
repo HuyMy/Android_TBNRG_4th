@@ -16,4 +16,9 @@
     <string name="warning_text">Are you sure you want to do this?</string>
     <string name="show_answer_button">Show answer</string>
     <string name="cheat_button">Cheat!</string>
+    <plurals name="cheat_remaining">
+        <item quantity="one">Remaining: %d time</item>
+        <item quantity="other">Remaining: %d times</item>
+        <item quantity="zero">You are not allowed to cheat anymore!</item>
+    </plurals>
 </resources>
