@@ -34,5 +34,18 @@
         <argument
             android:name="date"
             app:argType="java.util.Date" />
+        <action
+            android:id="@+id/action_open_time_picker"
+            app:destination="@id/time_picker_dest"
+            app:popUpTo="@id/date_picker_dest"
+            app:popUpToInclusive="true"/>
+    </dialog>
+    <dialog
+        android:id="@+id/time_picker_dest"
+        android:name="com.huylq.android.criminalintent.TimePickerFragment"
+        android:label="TimePickerFragment" >
+        <argument
+            android:name="date"
+            app:argType="java.util.Date" />
     </dialog>
 </navigation>

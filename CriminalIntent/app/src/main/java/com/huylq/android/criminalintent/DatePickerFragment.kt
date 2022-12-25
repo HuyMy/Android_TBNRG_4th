@@ -7,23 +7,24 @@ import androidx.fragment.app.DialogFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import java.util.Calendar
-import java.util.Date
-import java.util.GregorianCalendar
-
-const val ARG_DATE = "date"
 
 class DatePickerFragment : DialogFragment() {
 
+    private val calendar = Calendar.getInstance()
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dateListener = DatePickerDialog.OnDateSetListener { _, year, month, day ->
-            val resultDate: Date = GregorianCalendar(year, month, day).time
+            calendar.set(Calendar.YEAR, year)
+            calendar.set(Calendar.MONTH, month)
+            calendar.set(Calendar.DAY_OF_MONTH, day)
+            val resultDate = calendar.time
 
-            findNavController().previousBackStackEntry?.savedStateHandle?.set(ARG_DATE, resultDate)
+            val action = DatePickerFragmentDirections.actionOpenTimePicker(resultDate)
+            findNavController().navigate(action)
         }
 
         val safeArgs: DatePickerFragmentArgs by navArgs()
         val date = safeArgs.date
-        val calendar = Calendar.getInstance()
         calendar.time = date
         val initYear = calendar.get(Calendar.YEAR)
         val initMonth = calendar.get(Calendar.MONTH)

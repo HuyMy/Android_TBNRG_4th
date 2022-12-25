@@ -14,7 +14,7 @@ data class Crime (
 ) {
 
     fun getFormattedDate(): String {
-        val dateFormat = SimpleDateFormat("EEEE, MMM dd, yyyy", Locale.ENGLISH)
+        val dateFormat = SimpleDateFormat("EEEE, MMM dd, yyyy - HH:mm", Locale.ENGLISH)
         return dateFormat.format(date)
     }
 }
