@@ -10,15 +10,16 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import java.util.*
 
 private const val TAG = "CrimeFragment"
-private const val DIALOG_DATE = "DialogDate"
-private const val REQUEST_DATE = 0
 
-class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
+class CrimeFragment : Fragment() {
 
     private lateinit var crime: Crime
     private lateinit var titleField: EditText
@@ -47,10 +48,6 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
         dateButton = view.findViewById(R.id.crime_date) as Button
         solvedCheckBox = view.findViewById(R.id.crime_solved) as CheckBox
 
-//        dateButton.apply {
-//            text = crime.getFormattedDate()
-//            isEnabled = false
-//        }
         return view
     }
 
@@ -64,6 +61,26 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
                 updateUI()
             }
         }
+
+        val navBackStackEntry = findNavController().getBackStackEntry(R.id.crime_detail_dest)
+
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME
+                && navBackStackEntry.savedStateHandle.contains(ARG_DATE)) {
+                val resultDate = navBackStackEntry.savedStateHandle.get<Date>(ARG_DATE);
+                resultDate?.run {
+                    crime.date = this
+                    crimeDetailViewModel.saveCrime(crime)
+                }
+            }
+        }
+        navBackStackEntry.lifecycle.addObserver(observer)
+
+        viewLifecycleOwner.lifecycle.addObserver(LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_DESTROY) {
+                navBackStackEntry.lifecycle.removeObserver(observer)
+            }
+        })
     }
 
     override fun onStart() {
@@ -92,10 +109,8 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
         }
 
         dateButton.setOnClickListener {
-            DatePickerFragment.newInstance(crime.date).apply {
-                setTargetFragment(this@CrimeFragment, REQUEST_DATE)
-                show(this@CrimeFragment.parentFragmentManager, DIALOG_DATE)
-            }
+            val action = CrimeFragmentDirections.actionOpenDatePicker(crime.date)
+            findNavController().navigate(action)
         }
     }
 
@@ -112,10 +127,4 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
             jumpDrawablesToCurrentState()
         }
     }
-
-    override fun onDateSelected(date: Date) {
-        crime.date = date
-        updateUI()
-    }
-
 }

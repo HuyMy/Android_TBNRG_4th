@@ -23,5 +23,16 @@
         <argument
             android:name="crimeId"
             app:argType="java.io.Serializable" />
+        <action
+            android:id="@+id/action_open_date_picker"
+            app:destination="@id/date_picker_dest" />
     </fragment>
+    <dialog
+        android:id="@+id/date_picker_dest"
+        android:name="com.huylq.android.criminalintent.DatePickerFragment"
+        android:label="DatePickerFragment" >
+        <argument
+            android:name="date"
+            app:argType="java.util.Date" />
+    </dialog>
 </navigation>

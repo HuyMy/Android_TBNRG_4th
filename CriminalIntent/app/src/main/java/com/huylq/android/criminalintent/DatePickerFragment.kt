@@ -3,44 +3,26 @@ package com.huylq.android.criminalintent
 import android.app.DatePickerDialog
 import android.app.Dialog
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import java.util.Calendar
 import java.util.Date
 import java.util.GregorianCalendar
 
-private const val ARG_DATE = "date"
+const val ARG_DATE = "date"
 
 class DatePickerFragment : DialogFragment() {
-
-    companion object {
-        fun newInstance(date: Date): DatePickerFragment {
-            val args = Bundle().apply {
-                putSerializable(ARG_DATE, date)
-            }
-
-            return DatePickerFragment().apply {
-                arguments = args
-            }
-        }
-    }
-
-    interface Callbacks {
-        fun onDateSelected(date: Date)
-    }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dateListener = DatePickerDialog.OnDateSetListener { _, year, month, day ->
             val resultDate: Date = GregorianCalendar(year, month, day).time
 
-            targetFragment?.let {
-                (it as Callbacks).onDateSelected(resultDate)
-            }
+            findNavController().previousBackStackEntry?.savedStateHandle?.set(ARG_DATE, resultDate)
         }
 
-        val date = arguments?.getSerializable(ARG_DATE) as Date
+        val safeArgs: DatePickerFragmentArgs by navArgs()
+        val date = safeArgs.date
         val calendar = Calendar.getInstance()
         calendar.time = date
         val initYear = calendar.get(Calendar.YEAR)
