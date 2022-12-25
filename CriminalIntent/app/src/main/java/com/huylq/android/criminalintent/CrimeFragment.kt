@@ -15,8 +15,10 @@ import androidx.navigation.fragment.navArgs
 import java.util.*
 
 private const val TAG = "CrimeFragment"
+private const val DIALOG_DATE = "DialogDate"
+private const val REQUEST_DATE = 0
 
-class CrimeFragment : Fragment() {
+class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
 
     private lateinit var crime: Crime
     private lateinit var titleField: EditText
@@ -45,10 +47,10 @@ class CrimeFragment : Fragment() {
         dateButton = view.findViewById(R.id.crime_date) as Button
         solvedCheckBox = view.findViewById(R.id.crime_solved) as CheckBox
 
-        dateButton.apply {
-            text = crime.getFormattedDate()
-            isEnabled = false
-        }
+//        dateButton.apply {
+//            text = crime.getFormattedDate()
+//            isEnabled = false
+//        }
         return view
     }
 
@@ -88,6 +90,13 @@ class CrimeFragment : Fragment() {
                 crime.isSolved = isChecked
             }
         }
+
+        dateButton.setOnClickListener {
+            DatePickerFragment.newInstance(crime.date).apply {
+                setTargetFragment(this@CrimeFragment, REQUEST_DATE)
+                show(this@CrimeFragment.parentFragmentManager, DIALOG_DATE)
+            }
+        }
     }
 
     override fun onStop() {
@@ -102,6 +111,11 @@ class CrimeFragment : Fragment() {
             isChecked = crime.isSolved
             jumpDrawablesToCurrentState()
         }
+    }
+
+    override fun onDateSelected(date: Date) {
+        crime.date = date
+        updateUI()
     }
 
 }
