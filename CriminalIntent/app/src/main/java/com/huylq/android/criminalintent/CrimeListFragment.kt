@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
@@ -21,6 +22,7 @@ class CrimeListFragment : Fragment() {
 
     private lateinit var crimeRecyclerView: RecyclerView
     private lateinit var adapter: CrimeAdapter
+    private lateinit var emptyView: LinearLayout
 
     private val crimeListViewModel: CrimeListViewModel by lazy {
         ViewModelProvider(this)[CrimeListViewModel::class.java]
@@ -35,6 +37,7 @@ class CrimeListFragment : Fragment() {
 
         crimeRecyclerView = view.findViewById(R.id.crime_recycler_view) as RecyclerView
         crimeRecyclerView.layoutManager = LinearLayoutManager(context)
+        emptyView = view.findViewById(R.id.empty_view)
 
         return view
     }
@@ -69,8 +72,15 @@ class CrimeListFragment : Fragment() {
                 viewLifecycleOwner
         ) { crimes ->
             crimes?.let {
-                Log.i(TAG, "Got ${crimes.size} crimes")
-                adapter.submitList(crimes)
+                if (it.isNotEmpty()) {
+                    Log.i(TAG, "Got ${crimes.size} crimes")
+                    adapter.submitList(crimes)
+                    crimeRecyclerView.visibility = View.VISIBLE
+                    emptyView.visibility = View.GONE
+                } else {
+                    crimeRecyclerView.visibility = View.GONE
+                    emptyView.visibility = View.VISIBLE
+                }
             }
         }
         crimeRecyclerView.adapter = adapter
