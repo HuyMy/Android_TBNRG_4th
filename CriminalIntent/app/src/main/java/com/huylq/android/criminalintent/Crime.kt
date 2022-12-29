@@ -1,5 +1,6 @@
 package com.huylq.android.criminalintent
 
+import android.view.View
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import java.text.SimpleDateFormat
@@ -16,5 +17,12 @@ data class Crime (
     fun getFormattedDate(): String {
         val dateFormat = SimpleDateFormat("EEEE, MMM dd, yyyy - HH:mm", Locale.ENGLISH)
         return dateFormat.format(date)
+    }
+
+    fun getVisibility(): Int {
+        return if (isSolved)
+            View.VISIBLE
+        else
+            View.GONE
     }
 }

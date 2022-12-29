@@ -3,10 +3,9 @@ package com.huylq.android.criminalintent
 import android.os.Bundle
 import android.util.Log
 import android.view.*
-import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.core.view.MenuProvider
+import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
@@ -15,6 +14,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.huylq.android.criminalintent.databinding.ListItemCrimeBinding
 
 private const val TAG = "CrimeListFragment"
 
@@ -86,13 +86,9 @@ class CrimeListFragment : Fragment() {
         crimeRecyclerView.adapter = adapter
     }
 
-    private inner class CrimeHolder(view: View)
-        : RecyclerView.ViewHolder(view), View.OnClickListener {
+    private inner class CrimeHolder(private val binding: ListItemCrimeBinding)
+        : RecyclerView.ViewHolder(binding.root), View.OnClickListener {
         private lateinit var crime: Crime
-
-        private val titleTextView: TextView = view.findViewById(R.id.crime_title)
-        private val dateTextView: TextView = view.findViewById(R.id.crime_date)
-        private val solvedImageView: ImageView = view.findViewById(R.id.crime_solved)
 
         init {
             itemView.setOnClickListener(this)
@@ -100,13 +96,7 @@ class CrimeListFragment : Fragment() {
 
         fun bind(crime: Crime) {
             this.crime = crime
-            titleTextView.text = this.crime.title
-            dateTextView.text = this.crime.getFormattedDate()
-            solvedImageView.visibility = if (crime.isSolved) {
-                View.VISIBLE
-            } else {
-                View.GONE
-            }
+            binding.crime = crime
         }
 
         override fun onClick(p0: View?) {
@@ -117,8 +107,9 @@ class CrimeListFragment : Fragment() {
 
     private inner class CrimeAdapter() : ListAdapter<Crime, CrimeHolder>(CrimeDiff()) {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CrimeHolder {
-            val view = layoutInflater.inflate(R.layout.list_item_crime, parent, false)
-            return CrimeHolder(view)
+            val binding: ListItemCrimeBinding =
+                DataBindingUtil.inflate(layoutInflater, R.layout.list_item_crime, parent, false)
+            return CrimeHolder(binding)
         }
 
         override fun onBindViewHolder(holder: CrimeHolder, position: Int) {
