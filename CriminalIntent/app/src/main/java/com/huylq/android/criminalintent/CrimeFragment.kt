@@ -1,6 +1,8 @@
 package com.huylq.android.criminalintent
 
+import android.content.Intent
 import android.os.Bundle
+import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,6 +18,7 @@ import java.util.*
 
 private const val TAG = "CrimeFragment"
 
+private const val DATE_FORMAT = "EEE, MMM, dd"
 class CrimeFragment : Fragment() {
 
     private lateinit var crime: Crime
@@ -91,8 +94,37 @@ class CrimeFragment : Fragment() {
         }
     }
 
+    private fun getCrimeReport(): String {
+        val solvedString = if (crime.isSolved) {
+            getString(R.string.crime_report_solved)
+        } else {
+            getString(R.string.crime_report_unsolved)
+        }
+
+        val dateString = DateFormat.format(DATE_FORMAT, crime.date).toString()
+        val suspect = if (crime.suspect.isBlank()) {
+            getString(R.string.crime_report_no_suspect)
+        } else {
+            getString(R.string.crime_report_suspect, crime.suspect)
+        }
+
+        return getString(R.string.crime_report, crime.title, dateString, solvedString, suspect)
+    }
+
     fun onDateButtonClicked() {
         val action = CrimeFragmentDirections.actionOpenDatePicker(crime.date)
         findNavController().navigate(action)
+    }
+
+    fun onReportButtonClicked() {
+        Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, getCrimeReport())
+            putExtra(Intent.EXTRA_SUBJECT, getString(R.string.crime_report_subject))
+        }.also { intent ->
+            val chooserIntent =
+                Intent.createChooser(intent, getString(R.string.send_report))
+            startActivity(chooserIntent)
+        }
     }
 }
