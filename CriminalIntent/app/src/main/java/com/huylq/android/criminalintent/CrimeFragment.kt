@@ -2,10 +2,12 @@ package com.huylq.android.criminalintent
 
 import android.content.Intent
 import android.os.Bundle
+import android.provider.ContactsContract
 import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
@@ -27,6 +29,26 @@ class CrimeFragment : Fragment() {
         ViewModelProvider(this)[CrimeDetailViewModel::class.java]
     }
 
+    private val getContact = registerForActivityResult(ActivityResultContracts.PickContact()) { contactUri ->
+        if (contactUri == null)
+            return@registerForActivityResult
+
+        val queryFields = arrayOf(ContactsContract.Contacts.DISPLAY_NAME)
+
+        val cursor = requireActivity().contentResolver
+            .query(contactUri, queryFields, null, null, null)
+
+        cursor?.use {
+            if (it.count > 0) {
+                it.moveToFirst()
+                val suspect = it.getString(0)
+                crime.suspect = suspect
+                crimeDetailViewModel.saveCrime(crime)
+                binding.crimeSuspect.text = suspect
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         crime = Crime()
@@ -36,7 +58,7 @@ class CrimeFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         val safeArgs: CrimeFragmentArgs by navArgs()
         val crimeId = safeArgs.crimeId as UUID
         crimeDetailViewModel.loadCrime(crimeId)
@@ -89,8 +111,9 @@ class CrimeFragment : Fragment() {
 
     private fun updateUI() {
         binding.apply {
-            crimeDate.text = crime.getFormattedDate()
             crimeSolved.jumpDrawablesToCurrentState()
+            if (crime.suspect.isNotEmpty())
+                crimeSuspect.text = crime.suspect
         }
     }
 
@@ -126,5 +149,9 @@ class CrimeFragment : Fragment() {
                 Intent.createChooser(intent, getString(R.string.send_report))
             startActivity(chooserIntent)
         }
+    }
+
+    fun onSuspectButtonClicked() {
+        getContact.launch(null)
     }
 }
